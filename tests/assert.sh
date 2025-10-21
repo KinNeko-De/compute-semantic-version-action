@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+fail() {
+  # If the temporary GITHUB_OUTPUT file exists, show its contents for debugging
+  if [[ -n "${GITHUB_OUTPUT_TMP-}" && -f "$GITHUB_OUTPUT_TMP" ]]; then
+    printf 'GITHUB_OUTPUT (tmp) content:\n%s\n' "$(cat "$GITHUB_OUTPUT_TMP" 2>/dev/null || true)"
+  fi
+  echo "FAIL: $1"
+  exit 1
+}
+
+if [[ -z "${MAJOR_MINOR_PATCH-}" ]]; then
+  fail "MAJOR_MINOR_PATCH must be set in the case script"
+fi
+
+if [[ -z "${expected_semver-}" ]]; then
+  fail "expected_semver must be set in the case script"
+fi
+
+# Create temporary file for GITHUB_OUTPUT so the script can write outputs there
+GITHUB_OUTPUT_TMP=$(mktemp)
+
+# Ensure the temp file is removed on exit (success or failure)
+trap 'rm -f "$GITHUB_OUTPUT_TMP"' EXIT
+
+# Run the compute script; it will write key=value lines into $GITHUB_OUTPUT_TMP
+GITHUB_OUTPUT="$GITHUB_OUTPUT_TMP" MAJOR_MINOR_PATCH="$MAJOR_MINOR_PATCH" DEFAULT_BRANCH="${DEFAULT_BRANCH-}" \
+  GITHUB_EVENT_NAME="${GITHUB_EVENT_NAME-}" GITHUB_REF="${GITHUB_REF-}" GITHUB_HEAD_REF="${GITHUB_HEAD_REF-}" \
+  GITHUB_RUN_NUMBER="${GITHUB_RUN_NUMBER-}" "$ROOT_DIR/../bin/compute-semver.sh" 2>&1
+
+# Read semantic_version from the temp GITHUB_OUTPUT file
+semver=$(grep -m1 '^semantic_version=' "$GITHUB_OUTPUT_TMP" | cut -d'=' -f2- || true)
+
+# If the semantic version doesn't match, fail() will print the temp file content
+if [[ "$semver" != "$expected_semver" ]]; then
+  fail "Expected $expected_semver but got $semver"
+fi
+
+echo "OK: $semver"
