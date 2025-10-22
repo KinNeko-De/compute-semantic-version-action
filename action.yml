@@ -3,7 +3,7 @@ description: 'Compute a semantic version with an optional branch/run-based suffi
 author: 'KinNeko-De'
 inputs:
   major_minor_patch:
-    description: 'Base semantic version (MAJOR.MINOR.PATCH)'
+    description: 'Current version number (MAJOR.MINOR.PATCH)'
     required: true
 runs:
   using: 'composite'

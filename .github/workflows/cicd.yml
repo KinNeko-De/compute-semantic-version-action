@@ -1,0 +1,31 @@
+name: cicd
+
+on:
+  push: {}
+
+env:
+  MAJOR_MINOR_PATCH: 0.0.1
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure scripts are executable
+        run: |
+          chmod +x ./bin/compute-semver.sh
+          chmod +x ./tests/assert.sh
+          chmod +x ./tests/run_tests.sh
+
+      - name: Run tests
+        run: bash tests/run_tests.sh
+
+      - name: Compute semantic version
+        id: semantic_version
+        uses: ./
+        with:
+          major_minor_patch: ${{ env.MAJOR_MINOR_PATCH }}
+
+
