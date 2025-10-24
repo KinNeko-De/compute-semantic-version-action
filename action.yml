@@ -1,0 +1,39 @@
+name: 'Compute semantic version'
+description: 'Compute a semantic version with an optional branch/run-based suffix. Exposes outputs for workflows.'
+author: 'KinNeko-De'
+inputs:
+  major_minor_patch:
+    description: 'Current version number (MAJOR.MINOR.PATCH)'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - id: compute
+      name: Compute semantic version
+      shell: bash
+      env:
+        DEFAULT_BRANCH: "${{ github.event.repository.default_branch }}"
+        MAJOR_MINOR_PATCH: "${{ inputs.major_minor_patch }}"
+        GITHUB_EVENT_NAME: "${{ github.event_name }}"
+        GITHUB_REF: "${{ github.ref }}"
+        GITHUB_HEAD_REF: "${{ github.head_ref }}"
+        GITHUB_RUN_NUMBER: "${{ github.run_number }}"
+      run: |
+        set -euo pipefail
+        chmod +x "${{ github.action_path }}/bin/compute-semver.sh"
+
+        # Run the helper script; the script writes key=value lines directly to $GITHUB_OUTPUT
+        "${{ github.action_path }}/bin/compute-semver.sh"
+outputs:
+  semantic_version:
+    description: 'Full semantic version including any suffix/extension'
+    value: ${{ steps.compute.outputs.semantic_version }}
+  version_suffix:
+    description: 'The computed suffix (branch.runNumber) when used'
+    value: ${{ steps.compute.outputs.version_suffix }}
+  extension:
+    description: 'The extension to append to MAJOR_MINOR_PATCH (-suffix)'
+    value: ${{ steps.compute.outputs.extension }}
+  use_version_suffix:
+    description: 'True when a suffix/extension should be used'
+    value: ${{ steps.compute.outputs.use_version_suffix }}

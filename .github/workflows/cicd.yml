@@ -1,0 +1,71 @@
+name: cicd
+
+on:
+  push:
+
+env:
+  MAJOR_MINOR_PATCH: 0.0.1
+
+permissions:
+  contents: write
+
+jobs:
+  ci:
+    name: Continuous Integration
+    outputs:
+      semantic_version: ${{ steps.semantic_version.outputs.semantic_version }}
+      git_tag: ${{ steps.prepare_tag.outputs.git_tag }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure scripts are executable
+        run: |
+          chmod +x ./bin/compute-semver.sh
+          chmod +x ./tests/assert.sh
+          chmod +x ./tests/run_tests.sh
+
+      - name: Run tests
+        run: bash tests/run_tests.sh
+
+      - name: Compute semantic version
+        id: semantic_version
+        uses: ./
+        with:
+          major_minor_patch: ${{ env.MAJOR_MINOR_PATCH }}
+
+      - name: Prepare git tag
+        id: prepare_tag
+        run: |
+          echo "git_tag=v${{ steps.semantic_version.outputs.semantic_version }}" >> $GITHUB_OUTPUT
+
+      - name: Create semantic versioning git tag
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "refs/tags/${{ steps.prepare_tag.outputs.git_tag }}",
+              sha: context.sha
+            })
+
+      - name: Delete outdated git tags
+        uses: KinNeko-De/cleanup-outdated-tag-action@v0.1.4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  cd:
+    name: Continue Delivery
+    needs: ci
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "${{ needs.ci.outputs.git_tag }}"
+          generate_release_notes: true
+          draft: false
+          prerelease: false
