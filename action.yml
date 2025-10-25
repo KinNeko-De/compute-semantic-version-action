@@ -1,6 +1,9 @@
 name: 'Compute semantic version'
 description: 'Compute a semantic version with an optional branch/run-based suffix. Exposes outputs for workflows.'
 author: 'KinNeko-De'
+branding:
+  icon: 'printer'
+  color: 'orange'
 inputs:
   major:
     description: 'MAJOR version number'
