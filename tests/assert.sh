@@ -12,8 +12,8 @@ fail() {
   exit 1
 }
 
-if [[ -z "${MAJOR_MINOR_PATCH-}" ]]; then
-  fail "MAJOR_MINOR_PATCH must be set in the case script"
+if [[ -z "${MAJOR-}" || -z "${MINOR-}" || -z "${PATCH-}" ]]; then
+  fail "MAJOR, MINOR and PATCH must be set in the case script"
 fi
 
 if [[ -z "${expected_semver-}" ]]; then
@@ -27,12 +27,13 @@ GITHUB_OUTPUT_TMP=$(mktemp)
 trap 'rm -f "$GITHUB_OUTPUT_TMP"' EXIT
 
 # Run the compute script; it will write key=value lines into $GITHUB_OUTPUT_TMP
-GITHUB_OUTPUT="$GITHUB_OUTPUT_TMP" MAJOR_MINOR_PATCH="$MAJOR_MINOR_PATCH" DEFAULT_BRANCH="${DEFAULT_BRANCH-}" \
+GITHUB_OUTPUT="$GITHUB_OUTPUT_TMP" MAJOR="$MAJOR" MINOR="$MINOR" PATCH="$PATCH" DEFAULT_BRANCH="${DEFAULT_BRANCH-}" \
   GITHUB_EVENT_NAME="${GITHUB_EVENT_NAME-}" GITHUB_REF="${GITHUB_REF-}" GITHUB_HEAD_REF="${GITHUB_HEAD_REF-}" \
   GITHUB_RUN_NUMBER="${GITHUB_RUN_NUMBER-}" "$ROOT_DIR/../bin/compute-semver.sh" 2>&1
 
 # Read semantic_version from the temp GITHUB_OUTPUT file
-semver=$(grep -m1 '^semantic_version=' "$GITHUB_OUTPUT_TMP" | cut -d'=' -f2- || true)
+semver_line=$(grep -m1 '^semantic_version=' "$GITHUB_OUTPUT_TMP" || true)
+semver=${semver_line#semantic_version=}
 
 # If the semantic version doesn't match, fail() will print the temp file content
 if [[ "$semver" != "$expected_semver" ]]; then

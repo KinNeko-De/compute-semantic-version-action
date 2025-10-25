@@ -2,8 +2,14 @@ name: 'Compute semantic version'
 description: 'Compute a semantic version with an optional branch/run-based suffix. Exposes outputs for workflows.'
 author: 'KinNeko-De'
 inputs:
-  major_minor_patch:
-    description: 'Current version number (MAJOR.MINOR.PATCH)'
+  major:
+    description: 'MAJOR version number'
+    required: true
+  minor:
+    description: 'MINOR version number'
+    required: true
+  patch:
+    description: 'PATCH version number'
     required: true
 runs:
   using: 'composite'
@@ -13,7 +19,9 @@ runs:
       shell: bash
       env:
         DEFAULT_BRANCH: "${{ github.event.repository.default_branch }}"
-        MAJOR_MINOR_PATCH: "${{ inputs.major_minor_patch }}"
+        MAJOR: "${{ inputs.major }}"
+        MINOR: "${{ inputs.minor }}"
+        PATCH: "${{ inputs.patch }}"
         GITHUB_EVENT_NAME: "${{ github.event_name }}"
         GITHUB_REF: "${{ github.ref }}"
         GITHUB_HEAD_REF: "${{ github.head_ref }}"
@@ -32,7 +40,7 @@ outputs:
     description: 'The computed suffix (branch.runNumber) when used'
     value: ${{ steps.compute.outputs.version_suffix }}
   extension:
-    description: 'The extension to append to MAJOR_MINOR_PATCH (-suffix)'
+    description: 'The extension to append to the base version (-suffix)'
     value: ${{ steps.compute.outputs.extension }}
   use_version_suffix:
     description: 'True when a suffix/extension should be used'

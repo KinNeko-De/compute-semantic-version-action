@@ -4,7 +4,9 @@ on:
   push:
 
 env:
-  MAJOR_MINOR_PATCH: 0.0.1
+  MAJOR: 0
+  MINOR: 0
+  PATCH: 1
 
 permissions:
   contents: write
@@ -19,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Ensure scripts are executable
         run: |
@@ -33,7 +37,9 @@ jobs:
         id: semantic_version
         uses: ./
         with:
-          major_minor_patch: ${{ env.MAJOR_MINOR_PATCH }}
+          major: ${{ env.MAJOR }}
+          minor: ${{ env.MINOR }}
+          patch: ${{ env.PATCH }}
 
       - name: Prepare git tag
         id: prepare_tag
