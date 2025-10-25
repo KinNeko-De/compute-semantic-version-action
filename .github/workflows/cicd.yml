@@ -49,7 +49,7 @@ jobs:
       - name: "Version upgraded?"
         id: version_check
         run: |
-          current_version="${{ steps.prepare_tag.outputs.git_tag }}"
+          current_version="v${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.PATCH }}"
           last_main_version=$(git tag --list 'v[0-9]*\.[0-9]*\.[0-9]*' | grep -Pv "v[0-9]*\.[0-9]*\.[0-9]*-" | sort -V | tail -n 1)
           echo "Compare last main version: $last_main_version with current version: $current_version"
           if [[ $(echo -e "$current_version\n$last_main_version" | sort -V | head -n 1) == "$current_version" ]]; then
