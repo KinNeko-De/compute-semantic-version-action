@@ -1,6 +1,9 @@
 name: 'Compute semantic version'
 description: 'Compute a semantic version with an optional branch/run-based suffix. Exposes outputs for workflows.'
 author: 'KinNeko-De'
+branding:
+  icon: 'printer'
+  color: 'orange'
 inputs:
   major:
     description: 'MAJOR version number'
@@ -45,3 +48,6 @@ outputs:
   use_version_suffix:
     description: 'True when a suffix/extension should be used'
     value: ${{ steps.compute.outputs.use_version_suffix }}
+  next_default_branch_version:
+    description: 'The next semantic version for the default branch (MAJOR.MINOR.PATCH)'
+    value: ${{ steps.compute.outputs.next_default_branch_version }}

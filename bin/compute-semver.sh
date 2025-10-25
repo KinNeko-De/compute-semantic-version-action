@@ -47,6 +47,7 @@ compute_semver() {
   # Construct full version from separate MAJOR, MINOR, PATCH inputs
   FULL_VERSION="${MAJOR}.${MINOR}.${PATCH}"
   SEMANTIC_VERSION="${FULL_VERSION}${EXTENSION}"
+  NEXT_DEFAULT_BRANCH_VERSION="${FULL_VERSION}"
 }
 
 print_outputs() {
@@ -54,6 +55,7 @@ print_outputs() {
   echo "version_suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
   echo "extension=$EXTENSION" >> "$GITHUB_OUTPUT"
   echo "semantic_version=$SEMANTIC_VERSION" >> "$GITHUB_OUTPUT"
+  echo "next_default_branch_version=$NEXT_DEFAULT_BRANCH_VERSION" >> "$GITHUB_OUTPUT"
 }
 
 main "$@"
