@@ -57,6 +57,40 @@ jobs:
             echo "Please upgrade the version number to a higher value than $last_main_version"
             exit 1
           fi
+            echo "--- Version check diagnostics ---"
+            set -o pipefail
+            echo "PWD: $(pwd)"
+            echo "Git version:"; git --version || true
+            echo "Is inside work tree:"; git rev-parse --is-inside-work-tree || true
+            echo "Git status (branch):"; git status --porcelain --branch || true
+            echo "Git remotes:"; git remote -v || true
+
+            # Try fetch; don't fail the step on fetch errors but print output for debugging
+            echo "Fetching tags..."
+            if ! git fetch --prune --unshallow --tags; then
+              echo "Primary fetch failed, trying without --unshallow..."
+              git fetch --prune --tags || echo "Fetch failed (non-fatal)"
+            fi
+
+            current_version="${{ steps.prepare_tag.outputs.git_tag }}"
+            echo "Current version (from prepare_tag): $current_version"
+
+            # Collect tags; tolerate empty result
+            tags=$(git tag --list 'v[0-9]*\.[0-9]*\.[0-9]*' || true)
+            echo "All matching tags:\n$tags"
+            last_main_version=$(echo "$tags" | grep -Pv "v[0-9]*\.[0-9]*\.[0-9]*-" | sort -V | tail -n 1 || true)
+            echo "Last main version: $last_main_version"
+
+            if [[ -z "$last_main_version" ]]; then
+              echo "No prior main version found; skipping upgrade check."
+              exit 0
+            fi
+
+            echo "Compare last main version: $last_main_version with current version: $current_version"
+            if [[ $(echo -e "$current_version\n$last_main_version" | sort -V | head -n 1) == "$current_version" ]]; then
+              echo "Please upgrade the version number to a higher value than $last_main_version"
+              exit 1
+            fi
 
       - name: "Create semantic versioning git tag ${{ steps.prepare_tag.outputs.git_tag }}" 
         uses: actions/github-script@v7
