@@ -46,6 +46,21 @@ jobs:
         run: |
           echo "git_tag=v${{ steps.semantic_version.outputs.semantic_version }}" >> $GITHUB_OUTPUT
 
+      - name: "Version upgraded?"
+        id: version_check
+        run: |
+          current_version="v${{ steps.semantic_version.outputs.next_default_branch_version }}"
+          last_main_version=$(git tag --list | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          if [[ -z "$last_main_version" ]]; then
+            echo "No previous version found, proceeding..."
+          else
+            echo "Compare last main version: $last_main_version with current version: $current_version"
+            if [[ $(echo -e "$current_version\n$last_main_version" | sort -V | head -n 1) == "$current_version" ]]; then
+              echo "Please upgrade the version number to a higher value than $last_main_version"
+              exit 1
+            fi
+          fi
+
       - name: "Create semantic versioning git tag ${{ steps.prepare_tag.outputs.git_tag }}" 
         uses: actions/github-script@v7
         with:
