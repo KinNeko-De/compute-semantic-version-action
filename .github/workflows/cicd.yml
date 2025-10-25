@@ -49,7 +49,6 @@ jobs:
       - name: "Version upgraded?"
         id: version_check
         run: |
-          git fetch --prune --unshallow --tags > /dev/null 2>&1
           current_version="${{ steps.prepare_tag.outputs.git_tag }}"
           last_main_version=$(git tag --list 'v[0-9]*\.[0-9]*\.[0-9]*' | grep -Pv "v[0-9]*\.[0-9]*\.[0-9]*-" | sort -V | tail -n 1)
           echo "Compare last main version: $last_main_version with current version: $current_version"
@@ -64,13 +63,6 @@ jobs:
             echo "Is inside work tree:"; git rev-parse --is-inside-work-tree || true
             echo "Git status (branch):"; git status --porcelain --branch || true
             echo "Git remotes:"; git remote -v || true
-
-            # Try fetch; don't fail the step on fetch errors but print output for debugging
-            echo "Fetching tags..."
-            if ! git fetch --prune --unshallow --tags; then
-              echo "Primary fetch failed, trying without --unshallow..."
-              git fetch --prune --tags || echo "Fetch failed (non-fatal)"
-            fi
 
             current_version="${{ steps.prepare_tag.outputs.git_tag }}"
             echo "Current version (from prepare_tag): $current_version"
