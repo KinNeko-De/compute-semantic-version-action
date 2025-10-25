@@ -1,6 +1,6 @@
 # Compute semantic version
 
-This composite GitHub Action computes a semantic version from a provided MAJOR.MINOR.PATCH and — when appropriate — appends a branch prerelease suffix. The action intentionally keeps side-effects to a minimum: it does not create git tags or publish packages. Instead it emits a small set of outputs so downstream steps (or language-specific workflows) can decide how to consume or transform the version.
+This composite GitHub Action computes a semantic version from provided version number and appends a feature branch prerelease suffix. The action intentionally does not create git tags or publish packages. Instead it emits a small set of outputs so downstream steps in language-specific workflows can decide how to use the version.
 
 ## Motivation
 
@@ -9,8 +9,8 @@ C# vs Go: Go tooling commonly uses git tags, and those tags frequently include a
 ## How it works
 
 - Minimal, composable behavior: By only computing and exposing a version, this action can be reused from pipelines without forcing a git tag or publishing decision on callers.
-- Version control responsibility: this action does not automatically increment or choose the base MAJOR.MINOR.PATCH. The canonical base version MUST be provided by the workflow as a variable (for example a workflow input). The workflow is the single source of truth — it must pass that value into this action via the `major_minor_patch` input and is responsible for propagating the same value to other build artifacts if needed.
-- Prereleases: feature branches and pull requests often need unique prerelease identifiers so CI can publish or test artifacts without colliding with official releases. The action generates branch/run-based suffixes that combine the branch name and the GitHub run number (for example `1.2.3-feature.42`). The GitHub run number increases with each workflow run, so the suffix provides an automatically-incrementing prerelease identifier — developers working on feature branches don't need to manage version numbers manually. Bumping the base `MAJOR.MINOR.PATCH` is expected to happen as part of the PR completion / merge (the final release process), not during iterative feature work.
+- Version control responsibility: The canonical version numbers must be provided by the workflow and are managed by the developer. The workflow is the single source of truth and is responsible for propagating the semantic version to other build artifacts if needed.
+- Prereleases: feature branches and pull requests often need unique prerelease identifiers so CI can publish or test artifacts without colliding with official releases. The action generates branch/run-based suffixes that combine the branch name and the GitHub run number (for example `1.2.3-feature.42`). The GitHub run number increases with each workflow run, so the suffix provides an automatically-incrementing prerelease identifier — developers working on feature branches don't need to manage version numbers manually. Bumping the version is expected to happen as part of the PR completion / merge (the final release process), not during iterative feature work.
 
 ## Trunk-based development
 
@@ -18,7 +18,9 @@ This action assumes a trunk-based development workflow: a single repository defa
 
 ## Inputs
 
-- `major_minor_patch` (required): Base semantic version, e.g. `1.2.3`.
+- `major` (required): MAJOR version number, e.g. `1`.
+- `minor` (required): MINOR version number, e.g. `2`.
+- `patch` (required): PATCH version number, e.g. `3`.
 
 The action relies on the GitHub Actions runtime environment variables (for example `GITHUB_REF`, `GITHUB_HEAD_REF`, `GITHUB_RUN_NUMBER`, and the repository default branch from the event payload) to determine when to append a suffix.
 
@@ -31,8 +33,8 @@ The action relies on the GitHub Actions runtime environment variables (for examp
 
 ## Behavior / prerelease examples
 
-- Default branch push (release): `major_minor_patch` = `1.2.3` → `semantic_version` = `1.2.3` (no suffix)
-- Feature branch push: `major_minor_patch` = `1.2.3`, branch `feature/x`, run `101` → `semantic_version` = `1.2.3-x.101`
+- Default branch push (release): `major=1`, `minor=2`, `patch=3` → `semantic_version` = `1.2.3` (no suffix)
+- Feature branch push: `major=1`, `minor=2`, `patch=3`, branch `feature/x`, run `101` → `semantic_version` = `1.2.3-x.101`
 - Pull request: suffix is based on `GITHUB_HEAD_REF` and `GITHUB_RUN_NUMBER` (e.g. `1.2.3-pr-branch.42`)
 
 # Where to use the semantic version number
@@ -44,3 +46,7 @@ Use the version number everywhere so you can identify and track artifacts by a s
 - Workflow name
 - Workflow artifact
 - API version
+
+## Example workflow
+
+For a sample workflow see the [`ci/cd pipeline`](.github/workflows/cicd.yml) in this repository. It demonstrates passing `major`, `minor`, and `patch` inputs and using the `semantic_version` output to release this GitHub action.

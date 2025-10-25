@@ -4,7 +4,9 @@ on:
   push:
 
 env:
-  MAJOR_MINOR_PATCH: 0.0.1
+  MAJOR: 0
+  MINOR: 1
+  PATCH: 0
 
 permissions:
   contents: write
@@ -19,6 +21,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Ensure scripts are executable
         run: |
@@ -33,14 +37,16 @@ jobs:
         id: semantic_version
         uses: ./
         with:
-          major_minor_patch: ${{ env.MAJOR_MINOR_PATCH }}
+          major: ${{ env.MAJOR }}
+          minor: ${{ env.MINOR }}
+          patch: ${{ env.PATCH }}
 
       - name: Prepare git tag
         id: prepare_tag
         run: |
           echo "git_tag=v${{ steps.semantic_version.outputs.semantic_version }}" >> $GITHUB_OUTPUT
 
-      - name: Create semantic versioning git tag
+      - name: "Create semantic versioning git tag ${{ steps.prepare_tag.outputs.git_tag }}" 
         uses: actions/github-script@v7
         with:
           script: |
@@ -62,7 +68,7 @@ jobs:
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     steps:
-      - name: Create release
+      - name: "Create release ${{ needs.ci.outputs.semantic_version }}"
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "${{ needs.ci.outputs.git_tag }}"

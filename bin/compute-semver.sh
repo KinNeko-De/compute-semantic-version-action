@@ -44,7 +44,9 @@ compute_semver_feature_branch() {
 }
 
 compute_semver() {
-  SEMANTIC_VERSION="${MAJOR_MINOR_PATCH}${EXTENSION}"
+  # Construct full version from separate MAJOR, MINOR, PATCH inputs
+  FULL_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+  SEMANTIC_VERSION="${FULL_VERSION}${EXTENSION}"
 }
 
 print_outputs() {
