@@ -2,6 +2,8 @@
 
 This composite GitHub Action computes a semantic version from provided version number and appends a feature branch prerelease suffix. The action intentionally does not create git tags or publish packages. Instead it emits a small set of outputs so downstream steps in language-specific workflows can decide how to use the version.
 
+![CI](https://img.shields.io/github/actions/workflow/status/KinNeko-De/compute-semantic-version-action/cicd.yml?branch=main&label=ci&logo=github)
+
 ## Motivation
 
 C# vs Go: Go tooling commonly uses git tags, and those tags frequently include a leading `v` (for example `v1.2.3`). C# package and CI pipelines typically prefer the plain semantic version (for example `1.2.3`) and do not require a `v` prefix. This action outputs the canonical semantic version (without adding a `v`) so callers can decide whether to prepend `v` when creating tags for Go repositories.
